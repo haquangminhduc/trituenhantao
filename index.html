@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ôn tập Trí tuệ Nhân tạo - Theo Bài giảng</title>
+    <title>Ôn tập Trí tuệ Nhân tạo - Toàn diện</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -11,73 +11,39 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;700&display=swap" rel="stylesheet">
     <!-- Chosen Palette: Calm Study -->
-    <!-- Application Structure Plan: Restructured the SPA to have 10 sections, each corresponding to a lecture file (Lect. 1-8, 10-11) as requested. This lecture-based navigation allows for a linear, progressive review of the course material. Each section summarizes the key concepts from its respective PDF. Interactive elements (charts, simulations) are now placed within their relevant lecture sections to provide context. The AI assistant is retained in each section to support learning on a per-lecture basis. -->
-    <!-- Visualization & Content Choices: Content is summarized into key points using cards and lists. The search algorithm comparison chart from Chart.js is placed in Lect. 4. The CSP backtracking simulation is in Lect. 7. The Perceptron/XOR visualization is in Lect. 11. The Gemini API is used for contextual Q&A and explanations within each lecture's topic. No SVG/Mermaid is used. -->
+    <!-- Application Structure Plan: Added a new 'General AI Chat' section to the existing SPA. This provides a central, non-contextual place for users to ask questions about any topic from the lectures. The navigation is updated to include this new section, offering both structured (per-lecture) and unstructured (general chat) ways to learn. -->
+    <!-- Visualization & Content Choices: The new chat section features a standard chat UI (log, input, send button). It leverages the Gemini API for conversational Q&A, supplementing the structured content and quiz. All other features (lecture summaries, exercises, quiz) are retained. No SVG/Mermaid is used. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
-        body {
-            font-family: 'Be Vietnam Pro', sans-serif;
-            background-color: #f5f5f4;
-            color: #292524;
-        }
-        .nav-btn {
-            transition: all 0.3s ease;
-            border-bottom: 2px solid transparent;
-        }
-        .nav-btn.active {
-            border-bottom-color: #0d9488;
-            color: #0d9488;
-            font-weight: 500;
-        }
-        .content-section {
-            display: none;
-        }
-        .content-section.active {
-            display: block;
-        }
-        .card {
-            background-color: #ffffff;
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        }
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 350px;
-            max-height: 50vh;
-        }
+        body { font-family: 'Be Vietnam Pro', sans-serif; background-color: #f5f5f4; color: #292524; }
+        .nav-btn { transition: all 0.3s ease; border-bottom: 2px solid transparent; }
+        .nav-btn.active { border-bottom-color: #0d9488; color: #0d9488; font-weight: 500; }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        .card { background-color: #ffffff; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
         .prose-styles ul { list-style-type: disc; margin-left: 1.5rem; }
         .prose-styles ol { list-style-type: decimal; margin-left: 1.5rem; }
-        .prose-styles h3 { font-size: 1.25rem; font-weight: bold; margin-top: 1rem; }
+        .prose-styles h3, .prose-styles h4 { font-weight: bold; margin-top: 1rem; }
+        .prose-styles h3 { font-size: 1.25rem; }
+        .prose-styles h4 { font-size: 1.1rem; }
         .prose-styles p { margin-top: 0.5rem; }
         .prose-styles strong { font-weight: bold; }
-        .prose-styles code {
-            background-color: #e7e5e4;
-            padding: 0.1rem 0.3rem;
-            border-radius: 0.25rem;
-            font-family: monospace;
-        }
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #0d9488;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-            margin: 1rem auto;
-        }
+        .prose-styles code { background-color: #e7e5e4; padding: 0.1rem 0.3rem; border-radius: 0.25rem; font-family: monospace; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #0d9488; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin: 1rem auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .quiz-option.correct { background-color: #d1fae5; }
+        .quiz-option.incorrect { background-color: #fee2e2; }
+        .quiz-option label { display: block; width: 100%; cursor: pointer; padding: 0.75rem; }
+        details > summary { cursor: pointer; font-weight: 500; }
+        .chat-bubble-user { background-color: #c7d2fe; align-self: flex-end; }
+        .chat-bubble-ai { background-color: #e5e7eb; align-self: flex-start; }
     </style>
 </head>
 <body>
     <div class="container mx-auto p-4 md:p-8">
         <header class="text-center mb-8">
-            <h1 class="text-4xl md:text-5xl font-bold text-stone-800">Trí tuệ Nhân tạo</h1>
-            <p class="text-lg text-stone-600 mt-2">Tổng hợp bài giảng</p>
+            <h1 class="text-4xl md:text-5xl font-bold text-stone-800">Ôn tập Trí tuệ Nhân tạo</h1>
+            <p class="text-lg text-stone-600 mt-2">Lý thuyết, Bài tập, Thi thử & Chat AI</p>
         </header>
 
         <nav id="main-nav" class="flex flex-wrap justify-center border-b border-stone-300 mb-8">
@@ -91,236 +57,46 @@
             <button data-topic="Logic mệnh đề" data-target="lect8" class="nav-btn p-3 md:p-4 text-xs md:text-base">Bài 8</button>
             <button data-topic="Tổng quan Học máy" data-target="lect10" class="nav-btn p-3 md:p-4 text-xs md:text-base">Bài 10</button>
             <button data-topic="Mạng Nơ-ron" data-target="lect11" class="nav-btn p-3 md:p-4 text-xs md:text-base">Bài 11</button>
-          <a href="thithu.html" > <button data-topic="Thi Thử" data-target="lect11" class="nav-btn p-3 md:p-4 text-xs md:text-base">Thi thử</button></a>
+            <button data-topic="Thi thử Tổng hợp" data-target="quiz" class="nav-btn p-3 md:p-4 text-xs md:text-base font-bold text-rose-600">Thi thử</button>
+            <button data-topic="Chat AI Tổng hợp" data-target="ai-chat" class="nav-btn p-3 md:p-4 text-xs md:text-base font-bold text-indigo-600">Chat AI</button>
         </nav>
 
         <main id="content-container">
-            <!-- Section: Lecture 1 -->
-            <section id="lect1" class="content-section active space-y-6">
-                <h2 class="text-3xl font-bold text-center text-teal-800">Bài 1: Giới thiệu Trí tuệ Nhân tạo</h2>
-                <div class="card">
-                    <h3 class="text-xl font-bold mb-2">Các định nghĩa về AI</h3>
-                    <p>AI có thể được định nghĩa theo 4 cách tiếp cận, dựa trên hai chiều: suy nghĩ so với hành động, và con người so với hợp lý.</p>
-                    <ul class="list-disc list-inside mt-2 text-stone-600">
-                        <li><b>Suy nghĩ như người:</b> Mô hình hóa quá trình nhận thức.</li>
-                        <li><b>Hành động như người:</b> Vượt qua Phép thử Turing.</li>
-                        <li><b>Suy nghĩ hợp lý:</b> Dùng logic hình thức để suy luận.</li>
-                        <li><b>Hành động hợp lý:</b> Thiết kế các tác tử (agents) hành động để đạt kết quả tốt nhất. (Hướng tiếp cận chính của môn học).</li>
-                    </ul>
-                </div>
-                <div class="card">
-                    <h3 class="text-xl font-bold mb-2">Lịch sử phát triển và Ứng dụng</h3>
-                    <p class="text-stone-600">AI đã trải qua nhiều giai đoạn từ "thai nghén" (1943-1955), kỳ vọng lớn (1952-1969), khó khăn, đến khi trở thành một ngành công nghiệp. Các ứng dụng của AI rất đa dạng: từ hệ chuyên gia, nhận dạng tiếng nói, xử lý ảnh y tế đến xe tự lái, robot và các trò chơi thông minh.</p>
-                </div>
-                 <div class="ai-assistant-card card mt-8 max-w-4xl mx-auto"></div>
-            </section>
+            <section id="lect1" class="content-section active space-y-6"><h2 class="text-3xl font-bold text-center text-teal-800">Bài 1: Giới thiệu Trí tuệ Nhân tạo</h2><div class="card"><h3 class="text-xl font-bold mb-2">Lý thuyết chính</h3><p>AI được định nghĩa theo 4 cách tiếp cận: Suy nghĩ/Hành động như người, và Suy nghĩ/Hành động hợp lý. Hướng tiếp cận "Hành động hợp lý" thông qua các tác tử (agents) là trọng tâm của môn học.</p></div><div class="card"><h3 class="text-xl font-bold mb-2">Bài tập</h3><p class="text-stone-500 italic">Bài giảng này mang tính giới thiệu, không có bài tập cụ thể.</p></div><div class="ai-assistant-card card mt-8 max-w-4xl mx-auto"></div></section>
+            <section id="lect2" class="content-section space-y-6"><h2 class="text-3xl font-bold text-center text-teal-800">Bài 2: Tác tử (Agents)</h2><div class="card"><h3 class="text-xl font-bold mb-2">Lý thuyết chính</h3><p>Một tác tử nhận thức môi trường qua <b>cảm biến (sensors)</b> và hành động qua <b>cơ cấu hoạt động (actuators)</b>. Khung <b>PEAS</b> được dùng để mô tả môi trường. Có 4 loại tác tử: Phản xạ đơn giản, Dựa trên mô hình, Dựa trên mục tiêu, và Dựa trên lợi ích.</p></div><div class="card"><h3 class="text-xl font-bold mb-2">Bài tập: Phân tích Tác tử</h3><p><b>Đề bài:</b> Mô tả môi trường nhiệm vụ cho một tác tử chẩn đoán bệnh theo khung PEAS.</p><details class="mt-2"><summary class="text-teal-700">Xem lời giải</summary><div class="p-4 mt-2 bg-stone-50 rounded-lg text-sm"><ul class="list-disc list-inside"><li><b>Performance (Hiệu quả):</b> Mức độ sức khỏe của bệnh nhân, giảm chi phí.</li><li><b>Environment (Môi trường):</b> Bệnh nhân, bệnh viện, nhân viên y tế.</li><li><b>Actuators (Cơ cấu hoạt động):</b> Hiển thị câu hỏi, xét nghiệm, chẩn đoán, phác đồ điều trị.</li><li><b>Sensors (Cảm biến):</b> Bàn phím (nhập triệu chứng, câu trả lời của bệnh nhân).</li></ul></div></details></div><div class="ai-assistant-card card mt-8 max-w-4xl mx-auto"></div></section>
+            <section id="lect3" class="content-section space-y-6"><h2 class="text-3xl font-bold text-center text-teal-800">Bài 3: Tổng quan về Tìm kiếm</h2><div class="card"><h3 class="text-xl font-bold mb-2">Lý thuyết chính</h3><p>Bài toán tìm kiếm được định nghĩa bởi: Trạng thái ban đầu, Hành động, Mô hình chuyển tiếp, Kiểm tra đích, Chi phí đường đi. Các thuật toán được đánh giá dựa trên: Hoàn chỉnh, Tối ưu, Độ phức tạp thời gian & không gian.</p></div><div class="card"><h3 class="text-xl font-bold mb-2">Bài tập: Tìm đường đi cho Robot</h3><p><b>Đề bài:</b> Sử dụng thuật toán <code>GRAPH-SEARCH</code> để tìm đường đi cho robot từ S đến G trên lưới, tránh các ô màu xám.</p><img src="https://storage.googleapis.com/gemini-prod/images/3f19e48f-3615-46f3-a75d-6c17f7b3c27e" alt="Lưới bài tập tìm kiếm" class="my-2 rounded-lg border bg-white p-1"><details class="mt-2"><summary class="text-teal-700">Xem gợi ý giải</summary><div class="p-4 mt-2 bg-stone-50 rounded-lg text-sm"><p><b>Gợi ý:</b> Đánh dấu các ô trên lưới thành các trạng thái (ví dụ: s1, s2, ...). Áp dụng thuật toán GRAPH-SEARCH với một chiến lược (FIFO cho BFS hoặc LIFO cho DFS) để duyệt đồ thị trạng thái, lưu lại các trạng thái đã đi qua (explored set) để tránh lặp vô hạn.</p></div></details></div><div class="ai-assistant-card card mt-8 max-w-4xl mx-auto"></div></section>
+            <section id="lect4" class="content-section space-y-6"><h2 class="text-3xl font-bold text-center text-teal-800">Bài 4: Tìm kiếm không có thông tin</h2><div class="card"><h3 class="text-xl font-bold mb-2">Lý thuyết chính</h3><p>Các thuật toán tìm kiếm mù: BFS, UCS, DFS, IDS. BFS và IDS tối ưu về số bước. UCS tối ưu về chi phí. DFS hiệu quả về bộ nhớ nhưng không tối ưu.</p></div><div class="card"><h3 class="text-xl font-bold mb-2">Bài tập: Áp dụng BFS</h3><p><b>Đề bài:</b> Sử dụng BFS tìm đường đi từ S đến G cho đồ thị sau và vẽ cây tìm kiếm.</p><img src="https://storage.googleapis.com/gemini-prod/images/45041005-9e67-459d-be34-e40662d59ca1" alt="Đồ thị bài tập BFS" class="my-2 rounded-lg border bg-white p-1"><details class="mt-2"><summary class="text-teal-700">Xem lời giải</summary><div class="p-4 mt-2 bg-stone-50 rounded-lg text-sm"> <p><b>Các bước duyệt của BFS:</b></p> <ol class="list-decimal list-inside"><li>Frontier: {S}</li><li>Mở rộng S -> Frontier: {a, b}</li><li>Mở rộng a -> Frontier: {b, s, d, c} (s loại bỏ) -> {b, d, c}</li><li>Mở rộng b -> Frontier: {d, c, f}</li><li>... tiếp tục cho đến khi tìm thấy g.</li> </ol> <p><b>Cây tìm kiếm:</b> Gốc là S, các nút ở mỗi mức được mở rộng hoàn toàn trước khi chuyển sang mức tiếp theo.</p></div></details></div><div class="ai-assistant-card card mt-8 max-w-4xl mx-auto"></div></section>
+            <section id="lect5" class="content-section space-y-6"><h2 class="text-3xl font-bold text-center text-teal-800">Bài 5: Tìm kiếm có thông tin</h2><div class="card"><h3 class="text-xl font-bold mb-2">Lý thuyết chính</h3><p>Sử dụng hàm heuristic $h(n)$ để ước lượng chi phí đến đích. Các thuật toán chính: Greedy Best-First ($f(n) = h(n)$) và A* ($f(n) = g(n) + h(n)$). A* tối ưu nếu $h(n)$ chấp nhận được.</p></div><div class="card"><h3 class="text-xl font-bold mb-2">Bài tập: So sánh các thuật toán</h3><p><b>Đề bài:</b> Cho đồ thị có trọng số và giá trị heuristic, tìm đường đi ngắn nhất từ s đến g bằng UCS và A*.</p><img src="https://storage.googleapis.com/gemini-prod/images/6df022a8-1215-4122-8356-9a250320b923" alt="Đồ thị bài tập A*" class="my-2 rounded-lg border bg-white p-1"><details class="mt-2"><summary class="text-teal-700">Xem tóm tắt lời giải</summary><div class="p-4 mt-2 bg-stone-50 rounded-lg text-sm"><p><b>UCS:</b> Mở rộng nút có $g(n)$ nhỏ nhất. Sẽ khám phá nhiều đường hơn. Đường đi tìm được là <b>s-b-e-f-g</b> (chi phí 17).</p><p class="mt-2"><b>A*:</b> Mở rộng nút có $f(n) = g(n) + h(n)$ nhỏ nhất. Sẽ ưu tiên các đường hứa hẹn hơn. Đường đi tìm được là <b>s-a-f-g</b> (chi phí 18). Lưu ý rằng trong ví dụ này, A* không tìm ra đường đi ngắn nhất tuyệt đối vì heuristic không phải lúc nào cũng dẫn đường tốt nhất, nhưng nó thường hiệu quả hơn UCS.</p></div></details></div><div class="ai-assistant-card card mt-8 max-w-4xl mx-auto"></div></section>
+            <section id="lect6" class="content-section space-y-6"><h2 class="text-3xl font-bold text-center text-teal-800">Bài 6: Tìm kiếm Cục bộ</h2><div class="card"><h3 class="text-xl font-bold mb-2">Lý thuyết chính</h3><p>Cải thiện dần một nghiệm duy nhất. Các thuật toán: Leo đồi, Mô phỏng Luyện kim, Thuật toán Di truyền.</p></div><div class="card"><h3 class="text-xl font-bold mb-2">Bài tập: Bài toán 8-puzzle</h3><p><b>Đề bài:</b> Sử dụng thuật toán Leo đồi (Hill-Climbing) tìm nghiệm của bài toán 8-puzzle với hàm heuristic $h(n)$ là tổng khoảng cách Manhattan.</p><p class="text-stone-600 mt-2"><b>Lời giải:</b> Bắt đầu từ trạng thái S, ở mỗi bước, di chuyển ô trống đến vị trí nào làm giảm giá trị $h(n)$ nhiều nhất. Tiếp tục cho đến khi không thể cải thiện được nữa (đạt cực tiểu cục bộ) hoặc đến trạng thái đích G.</p></div><div class="ai-assistant-card card mt-8 max-w-4xl mx-auto"></div></section>
+            <section id="lect7" class="content-section space-y-6"><h2 class="text-3xl font-bold text-center text-teal-800">Bài 7: Bài toán Thỏa mãn Ràng buộc (CSP)</h2><div class="card"><h3 class="text-xl font-bold mb-2">Lý thuyết chính</h3><p>Giải bài toán với một tập biến, miền giá trị và các ràng buộc. Kỹ thuật chính: Tìm kiếm quay lui (Backtracking) và Lan truyền ràng buộc (AC-3).</p></div><div class="card"><h3 class="text-xl font-bold mb-2">Bài tập: Tô màu bản đồ</h3><p><b>Đề bài:</b> Tô màu bản đồ sau với các miền giá trị cho trước, sao cho các vùng lân cận có màu khác nhau.</p><img src="https://storage.googleapis.com/gemini-prod/images/4d2b2707-6b08-4e3f-9171-d41c88820c7d" alt="Bản đồ bài tập CSP" class="my-2 rounded-lg border bg-white p-1"><details class="mt-2"><summary class="text-teal-700">Xem gợi ý giải</summary><div class="p-4 mt-2 bg-stone-50 rounded-lg text-sm"><p>Sử dụng thuật toán tìm kiếm quay lui. Bắt đầu gán màu cho vùng A, sau đó đến B, C,... Tại mỗi bước, chọn một màu hợp lệ (không trùng với màu của hàng xóm đã được gán). Nếu không có màu hợp lệ, quay lui lại bước trước và thử một màu khác.</p></div></details></div><div class="ai-assistant-card card mt-8 max-w-4xl mx-auto"></div></section>
+            <section id="lect8" class="content-section space-y-6"><h2 class="text-3xl font-bold text-center text-teal-800">Bài 8: Logic Mệnh đề</h2><div class="card"><h3 class="text-xl font-bold mb-2">Lý thuyết chính</h3><p>Tác tử logic dùng cơ sở tri thức (KB) và các luật suy diễn để hành động. Các luật quan trọng: Modus Ponens, Phân giải (Resolution).</p></div><div class="card"><h3 class="text-xl font-bold mb-2">Bài tập: Chứng minh logic</h3><p><b>Đề bài:</b> Cho $KB = \{P \lor Q, Q \Rightarrow (R \land S), (P \lor R) \Rightarrow U\}$. Chứng minh $KB \models U$.</p><details class="mt-2"><summary class="text-teal-700">Xem các bước chứng minh</summary><div class="p-4 mt-2 bg-stone-50 rounded-lg text-sm"><p>Bài toán có thể được giải bằng thuật toán phân giải (Resolution). Đầu tiên, chuyển KB và $\neg U$ về dạng chuẩn hội (CNF). Sau đó, áp dụng luật phân giải liên tiếp cho đến khi sinh ra mệnh đề rỗng, chứng tỏ mâu thuẫn. Điều này chứng minh được $U$ là hệ quả logic của KB.</p></div></details></div><div class="ai-assistant-card card mt-8 max-w-4xl mx-auto"></div></section>
+            <section id="lect10" class="content-section space-y-6"><h2 class="text-3xl font-bold text-center text-teal-800">Bài 10: Tổng quan Học máy</h2><div class="card"><h3 class="text-xl font-bold mb-2">Lý thuyết chính</h3><p>Phân loại bài toán: Học có giám sát (Phân loại, Hồi quy), Học không giám sát (Phân cụm), Học tăng cường.</p></div><div class="card"><h3 class="text-xl font-bold mb-2">Bài tập: Phân biệt bài toán</h3><p><b>Câu hỏi:</b> Dự đoán giá nhà dựa trên diện tích và số phòng ngủ là bài toán gì?</p><details class="mt-2"><summary class="text-teal-700">Xem đáp án</summary><div class="p-4 mt-2 bg-stone-50 rounded-lg text-sm"><p>Đây là bài toán <b>Hồi quy (Regression)</b>, một dạng của học có giám sát, vì đầu ra (giá nhà) là một giá trị liên tục.</p></div></details></div><div class="ai-assistant-card card mt-8 max-w-4xl mx-auto"></div></section>
+            <section id="lect11" class="content-section space-y-6"><h2 class="text-3xl font-bold text-center text-teal-800">Bài 11: Mạng Nơ-ron</h2><div class="card"><h3 class="text-xl font-bold mb-2">Lý thuyết chính</h3><p>Mô hình Perceptron là mạng một tầng dùng hàm `hardlim`, chỉ giải được bài toán phân loại tuyến tính. Luật học: `W_new = W_old + (target - actual) * p`.</p></div><div class="card"><h3 class="text-xl font-bold mb-2">Bài tập: Luật học Perceptron</h3><p><b>Đề bài:</b> Cho tập mẫu $\{p_1=[2; 2], t_1=0\}, \{p_2=[1; -2], t_2=1\}$. Khởi tạo $W=[0, 0], b=0$. Áp dụng luật học Perceptron cho 2 mẫu đầu tiên.</p><details class="mt-2"><summary class="text-teal-700">Xem lời giải</summary><div class="p-4 mt-2 bg-stone-50 rounded-lg text-sm"><p><b>Bước 1 (với p1):</b><br> $a = hardlim(0*2 + 0*2 + 0) = hardlim(0) = 1$.<br> Lỗi $e = t_1 - a = 0 - 1 = -1$.<br> $W_{new} = [0, 0] + (-1)*[2, 2] = [-2, -2]$.<br> $b_{new} = 0 + (-1) = -1$.</p><p class="mt-2"><b>Bước 2 (với p2):</b><br> $a = hardlim((-2)*1 + (-2)*(-2) - 1) = hardlim(1) = 1$.<br> Lỗi $e = t_2 - a = 1 - 1 = 0$.<br> Trọng số và bias không đổi.</p></div></details></div><div class="ai-assistant-card card mt-8 max-w-4xl mx-auto"></div></section>
 
-            <!-- Section: Lecture 2 -->
-            <section id="lect2" class="content-section space-y-6">
-                <h2 class="text-3xl font-bold text-center text-teal-800">Bài 2: Tác tử (Agents)</h2>
-                <div class="card">
-                     <h3 class="text-xl font-bold mb-2">Tác tử và Môi trường</h3>
-                     <p class="text-stone-600">Một tác tử là một thực thể nhận thức môi trường qua <b>cảm biến (sensors)</b> và hành động lên môi trường qua <b>cơ cấu hoạt động (actuators)</b>. Khung làm việc <b>PEAS</b> (Performance, Environment, Actuators, Sensors) được dùng để mô tả môi trường nhiệm vụ.</p>
+            <!-- Section: Quiz -->
+            <section id="quiz" class="content-section space-y-6">
+                <h2 class="text-3xl font-bold text-center text-teal-800">Thi thử Tổng hợp</h2>
+                <div id="quiz-starter" class="text-center card">
+                    <p class="mb-4">Sẵn sàng để kiểm tra kiến thức của bạn? AI sẽ tạo một bài thi gồm 40 câu hỏi trắc nghiệm (lý thuyết và bài toán tính toán) bao quát tất cả các bài giảng.</p>
+                    <button id="start-quiz-btn" class="bg-rose-600 text-white px-6 py-3 rounded-lg hover:bg-rose-700 text-lg font-bold">Bắt đầu Thi thử</button>
                 </div>
-                <div class="card">
-                     <h3 class="text-xl font-bold mb-2">Kiến trúc của các Tác tử</h3>
-                     <p>Có 4 loại tác tử cơ bản:</p>
-                     <ol class="list-decimal list-inside mt-2 text-stone-600 space-y-1">
-                        <li><b>Tác tử phản xạ đơn giản:</b> Dựa trên luật `điều kiện-hành động` với thông tin hiện tại.</li>
-                        <li><b>Tác tử phản xạ dựa trên mô hình:</b> Duy trì một mô hình nội bộ về trạng thái thế giới.</li>
-                        <li><b>Tác tử dựa trên mục tiêu:</b> Hành động để đạt được mục tiêu (goals).</li>
-                        <li><b>Tác tử dựa trên lợi ích:</b> Chọn hành động để tối đa hóa hàm lợi ích (utility function).</li>
-                     </ol>
-                </div>
-                 <div class="ai-assistant-card card mt-8 max-w-4xl mx-auto"></div>
+                <div id="quiz-container" class="hidden"></div>
+                <div id="quiz-results" class="hidden card"></div>
             </section>
             
-            <!-- Section: Lecture 3 -->
-            <section id="lect3" class="content-section space-y-6">
-                 <h2 class="text-3xl font-bold text-center text-teal-800">Bài 3: Tổng quan về Tìm kiếm</h2>
-                 <div class="card">
-                     <h3 class="text-xl font-bold mb-2">Định nghĩa bài toán tìm kiếm</h3>
-                     <p>Một bài toán tìm kiếm được xác định bởi 5 thành phần:</p>
-                    <ol class="list-decimal list-inside text-stone-600 space-y-1 mt-2">
-                        <li><b>Trạng thái ban đầu (Initial State)</b></li>
-                        <li><b>Các hành động (Actions)</b></li>
-                        <li><b>Mô hình chuyển tiếp (Transition Model)</b></li>
-                        <li><b>Kiểm tra đích (Goal Test)</b></li>
-                        <li><b>Chi phí đường đi (Path Cost)</b></li>
-                    </ol>
-                 </div>
-                 <div class="card">
-                     <h3 class="text-xl font-bold mb-2">Cấu trúc Tìm kiếm và Đánh giá</h3>
-                     <p class="text-stone-600">Quá trình tìm kiếm được biểu diễn bằng một <b>cây tìm kiếm (search tree)</b>. Các thuật toán tìm kiếm được đánh giá dựa trên:</p>
-                     <ul class="list-disc list-inside mt-2 text-stone-600">
-                        <li><b>Hoàn chỉnh (Completeness):</b> Có luôn tìm ra nghiệm không?</li>
-                        <li><b>Tối ưu (Optimality):</b> Có tìm ra nghiệm tốt nhất không?</li>
-                        <li><b>Độ phức tạp thời gian & không gian:</b> Mất bao lâu và cần bao nhiêu bộ nhớ?</li>
-                     </ul>
-                 </div>
-                 <div class="ai-assistant-card card mt-8 max-w-4xl mx-auto"></div>
-            </section>
-            
-            <!-- Section: Lecture 4 -->
-            <section id="lect4" class="content-section space-y-6">
-                 <h2 class="text-3xl font-bold text-center text-teal-800">Bài 4: Tìm kiếm không có thông tin</h2>
-                 <p class="max-w-3xl mx-auto text-center text-stone-700 mb-8">Các chiến lược tìm kiếm này (còn gọi là tìm kiếm mù) chỉ sử dụng thông tin có trong định nghĩa bài toán.</p>
-                 <div class="card mb-8">
-                     <h3 class="text-xl font-bold mb-2">Các thuật toán chính</h3>
-                     <ul class="list-disc list-inside mt-2 text-stone-600">
-                        <li><b>Tìm kiếm theo chiều rộng (BFS):</b> Mở rộng nút nông nhất. Dùng hàng đợi FIFO. Hoàn chỉnh và tối ưu (với chi phí bước bằng nhau).</li>
-                        <li><b>Tìm kiếm chi phí cực tiểu (UCS):</b> Mở rộng nút có chi phí đường đi $g(n)$ nhỏ nhất. Dùng hàng đợi ưu tiên. Hoàn chỉnh và tối ưu.</li>
-                        <li><b>Tìm kiếm theo chiều sâu (DFS):</b> Mở rộng nút sâu nhất. Dùng ngăn xếp LIFO. Không tối ưu, không hoàn chỉnh nếu có vòng lặp vô hạn.</li>
-                        <li><b>Tìm kiếm lặp sâu dần (IDS):</b> Kết hợp ưu điểm của BFS và DFS. Hoàn chỉnh và tối ưu.</li>
-                     </ul>
-                 </div>
-                 <div class="card mb-8">
-                    <h3 class="text-2xl font-bold mb-4 text-center">So sánh các thuật toán tìm kiếm mù</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left" id="algo-table-uninformed">
-                            <thead><tr class="border-b"><th class="p-2">Thuật toán</th><th class="p-2">Hoàn chỉnh?</th><th class="p-2">Tối ưu?</th><th class="p-2">Time</th><th class="p-2">Space</th></tr></thead>
-                            <tbody></tbody>
-                        </table>
+            <!-- Section: AI Chat -->
+            <section id="ai-chat" class="content-section space-y-6">
+                 <h2 class="text-3xl font-bold text-center text-teal-800">Chat AI Tổng hợp</h2>
+                 <div class="card max-w-4xl mx-auto">
+                    <p class="mb-4 text-stone-600">Bạn có câu hỏi nhưng không chắc nó thuộc bài giảng nào? Hãy hỏi Trợ lý AI ở đây!</p>
+                    <div id="chat-log" class="h-96 border rounded-lg p-4 mb-4 overflow-y-auto bg-stone-50 flex flex-col space-y-4">
+                        <div class="chat-bubble-ai p-3 rounded-lg max-w-lg prose-styles">Chào bạn, tôi có thể giúp gì cho việc ôn tập môn Trí tuệ Nhân tạo của bạn?</div>
                     </div>
-                </div>
-                 <div class="ai-assistant-card card mt-8 max-w-4xl mx-auto"></div>
-            </section>
-
-            <!-- Section: Lecture 5 -->
-            <section id="lect5" class="content-section space-y-6">
-                <h2 class="text-3xl font-bold text-center text-teal-800">Bài 5: Tìm kiếm có thông tin (Heuristic)</h2>
-                 <p class="max-w-3xl mx-auto text-center text-stone-700 mb-8">Chiến lược tìm kiếm này sử dụng thông tin bổ sung về bài toán thông qua một hàm heuristic $h(n)$ để ước lượng chi phí từ trạng thái $n$ đến đích.</p>
-                <div class="card">
-                    <h3 class="text-xl font-bold mb-2">Các thuật toán chính</h3>
-                    <ul class="list-disc list-inside mt-2 text-stone-600">
-                        <li><b>Tìm kiếm tham lam (Greedy Best-First):</b> Mở rộng nút có vẻ gần đích nhất. Hàm đánh giá: $f(n) = h(n)$. Nhanh nhưng không tối ưu.</li>
-                        <li><b>Tìm kiếm A* (A-Star):</b> Mở rộng nút có tổng chi phí ước tính $f(n) = g(n) + h(n)$ nhỏ nhất, trong đó $g(n)$ là chi phí thực tế.</li>
-                    </ul>
-                </div>
-                 <div class="card">
-                    <h3 class="text-xl font-bold mb-2">Tính chất của A* và hàm Heuristic</h3>
-                    <p class="text-stone-600">A* là tối ưu nếu hàm heuristic $h(n)$ là <b>chấp nhận được (admissible)</b>, tức là $h(n)$ không bao giờ đánh giá quá cao chi phí thực tế đến đích. Nếu dùng GRAPH-SEARCH, $h(n)$ cần phải <b>đồng nhất (consistent)</b> để đảm bảo tính tối ưu.</p>
-                </div>
-                 <div class="ai-assistant-card card mt-8 max-w-4xl mx-auto"></div>
-            </section>
-
-            <!-- Section: Lecture 6 -->
-            <section id="lect6" class="content-section space-y-6">
-                 <h2 class="text-3xl font-bold text-center text-teal-800">Bài 6: Tìm kiếm Cục bộ (Local Search)</h2>
-                 <p class="max-w-3xl mx-auto text-center text-stone-700 mb-8">Thay vì khám phá các đường đi, thuật toán tìm kiếm cục bộ cải thiện dần một nghiệm duy nhất. Các thuật toán này rất hiệu quả về bộ nhớ.</p>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="card">
-                        <h4 class="font-bold text-lg">Leo đồi (Hill-Climbing)</h4>
-                        <p class="text-sm text-stone-600">Luôn di chuyển đến trạng thái láng giềng có giá trị tốt hơn. Nhược điểm là dễ bị "kẹt" ở cực trị cục bộ (local optimum).</p>
-                    </div>
-                    <div class="card">
-                        <h4 class="font-bold text-lg">Mô phỏng Luyện kim</h4>
-                        <p class="text-sm text-stone-600">Để thoát khỏi cực trị cục bộ, thuật toán này cho phép các bước di chuyển "xấu" (xuống dốc) với một xác suất giảm dần theo thời gian.</p>
-                    </div>
-                    <div class="card">
-                        <h4 class="font-bold text-lg">Thuật toán Di truyền</h4>
-                        <p class="text-sm text-stone-600">Duy trì một "quần thể" các nghiệm và tạo ra thế hệ mới tốt hơn thông qua các toán tử <b>chọn lọc</b>, <b>lai ghép</b> và <b>đột biến</b>.</p>
-                    </div>
-                </div>
-                 <div class="ai-assistant-card card mt-8 max-w-4xl mx-auto"></div>
-            </section>
-            
-            <!-- Section: Lecture 7 -->
-            <section id="lect7" class="content-section space-y-6">
-                 <h2 class="text-3xl font-bold text-center text-teal-800">Bài 7: Bài toán Thỏa mãn Ràng buộc (CSP)</h2>
-                 <p class="max-w-3xl mx-auto text-center text-stone-700 mb-8">CSP là một loại bài toán mà nghiệm phải thỏa mãn một tập hợp các ràng buộc. Kỹ thuật lan truyền ràng buộc và tìm kiếm quay lui là chìa khóa để giải quyết chúng.</p>
-                 <div class="card mb-8">
-                     <h3 class="text-xl font-bold mb-2">Các khái niệm chính</h3>
-                     <ul class="list-disc list-inside mt-2 text-stone-600">
-                        <li><b>Định nghĩa CSP:</b> Gồm 3 thành phần (X: tập biến, D: tập miền giá trị, C: tập ràng buộc).</li>
-                        <li><b>Lan truyền ràng buộc:</b> Dùng ràng buộc để giảm miền giá trị hợp lệ. Ví dụ: Cung nhất quán (Arc Consistency - AC-3).</li>
-                        <li><b>Tìm kiếm quay lui (Backtracking):</b> Một dạng DFS gán giá trị cho từng biến, nếu vi phạm ràng buộc thì quay lui. Có thể cải tiến bằng Kiểm tra tiến (Forward Checking).</li>
-                        <li><b>Tìm kiếm cục bộ cho CSP:</b> Dùng heuristic min-conflicts - chọn giá trị vi phạm ít ràng buộc nhất.</li>
-                     </ul>
+                    <form id="chat-form" class="flex gap-2">
+                        <input type="text" id="chat-input" class="flex-grow p-3 border rounded-lg" placeholder="Nhập câu hỏi của bạn...">
+                        <button type="submit" id="send-chat-btn" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 font-bold">Gửi</button>
+                    </form>
                  </div>
-                 <div class="card mb-8">
-                     <h3 class="text-xl font-bold mb-2">Mô phỏng: Tô màu bản đồ với Backtracking</h3>
-                     <div class="flex flex-col md:flex-row gap-8 items-center">
-                        <div class="flex-1 w-full"><div id="csp-map" class="grid grid-cols-3 gap-1 max-w-sm mx-auto p-2 bg-stone-200 rounded-lg"><div data-id="WA" class="col-span-1 row-span-2 p-4 border border-stone-400 bg-white rounded flex items-center justify-center h-24">WA</div><div data-id="NT" class="col-span-1 p-4 border border-stone-400 bg-white rounded flex items-center justify-center h-12">NT</div><div data-id="Q" class="col-span-1 p-4 border border-stone-400 bg-white rounded flex items-center justify-center h-12">Q</div><div data-id="SA" class="col-span-1 p-4 border border-stone-400 bg-white rounded flex items-center justify-center h-12">SA</div><div data-id="NSW" class="col-span-1 p-4 border border-stone-400 bg-white rounded flex items-center justify-center h-12">NSW</div><div class="col-span-1"></div><div data-id="V" class="col-span-1 p-4 border border-stone-400 bg-white rounded flex items-center justify-center h-12">V</div></div></div>
-                        <div class="flex-1 w-full"><div id="csp-log" class="h-48 bg-stone-100 p-4 rounded-lg overflow-y-auto border"><p class="font-mono text-sm">Nhấn "Bắt đầu"...</p></div><div class="mt-4 flex gap-4"><button id="start-csp" class="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700">Bắt đầu</button><button id="reset-csp" class="bg-stone-500 text-white px-4 py-2 rounded-lg hover:bg-stone-600">Làm lại</button></div></div>
-                     </div>
-                 </div>
-                 <div class="ai-assistant-card card mt-8 max-w-4xl mx-auto"></div>
-            </section>
-
-            <!-- Section: Lecture 8 -->
-            <section id="lect8" class="content-section space-y-6">
-                <h2 class="text-3xl font-bold text-center text-teal-800">Bài 8: Logic Mệnh đề</h2>
-                <p class="max-w-3xl mx-auto text-center text-stone-700 mb-8">Tác tử logic sử dụng một cơ sở tri thức (KB) và các quy tắc suy diễn để đưa ra quyết định.</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                     <div class="card">
-                        <h3 class="text-xl font-bold mb-2">Suy diễn logic</h3>
-                        <p class="mb-4">Câu hỏi cơ bản là liệu $KB \models \alpha$ (KB có kéo theo câu $\alpha$ không). Có thể chứng minh bằng bảng chân lý hoặc các luật suy diễn.</p>
-                    </div>
-                     <div class="card">
-                        <h3 class="text-xl font-bold mb-2">Các luật suy diễn quan trọng</h3>
-                         <ul class="list-disc list-inside mt-2 text-stone-600">
-                            <li><b>Modus Ponens:</b> Từ $(\alpha \Rightarrow \beta)$ và $\alpha$, suy ra $\beta$.</li>
-                            <li><b>Phân giải (Resolution):</b> Từ $(\alpha \vee \beta)$ và $(\neg\beta \vee \gamma)$, suy ra $(\alpha \vee \gamma)$. Đây là luật suy diễn hoàn chỉnh.</li>
-                         </ul>
-                    </div>
-                    <div class="card col-span-1 md:col-span-2">
-                        <h3 class="text-xl font-bold mb-2">Mệnh đề Horn và Suy diễn Chaining</h3>
-                        <p class="text-stone-600">Mệnh đề Horn là mệnh đề có tối đa một literal dương. Chúng cho phép các thuật toán suy diễn hiệu quả:</p>
-                        <ul class="list-disc list-inside mt-2 text-stone-600">
-                           <li><b>Suy diễn tiến (Forward Chaining):</b> Hướng dữ liệu, đi từ các sự kiện đã biết đến kết luận.</li>
-                           <li><b>Suy diễn lùi (Backward Chaining):</b> Hướng mục tiêu, đi từ mục tiêu cần chứng minh ngược về các điều kiện ban đầu.</li>
-                        </ul>
-                    </div>
-                </div>
-                 <div class="ai-assistant-card card mt-8 max-w-4xl mx-auto"></div>
-            </section>
-            
-            <!-- Section: Lecture 10 -->
-            <section id="lect10" class="content-section space-y-6">
-                 <h2 class="text-3xl font-bold text-center text-teal-800">Bài 10: Tổng quan về Học máy</h2>
-                 <p class="max-w-3xl mx-auto text-center text-stone-700 mb-8">Học máy là lĩnh vực nghiên cứu thiết kế các chương trình máy tính có khả năng học hỏi từ kinh nghiệm hoặc thích ứng với sự thay đổi của môi trường.</p>
-                 <div class="card">
-                     <h3 class="text-xl font-bold mb-2">Chu trình thiết kế hệ thống học máy</h3>
-                     <ol class="list-decimal list-inside mt-2 text-stone-600">
-                         <li>Thu thập dữ liệu (Collect data)</li>
-                         <li>Chọn đặc trưng (Choose features)</li>
-                         <li>Chọn mô hình (Choose model)</li>
-                         <li>Huấn luyện bộ phân lớp (Train classifier)</li>
-                         <li>Đánh giá bộ phân lớp (Evaluate classifier)</li>
-                     </ol>
-                 </div>
-                 <div class="card">
-                     <h3 class="text-xl font-bold mb-2">Phân loại bài toán học máy</h3>
-                     <ul class="list-disc list-inside mt-2 text-stone-600">
-                         <li><b>Học có giám sát (Supervised Learning):</b> Học từ dữ liệu đã được gán nhãn. Gồm <b>Phân loại (Classification)</b> và <b>Hồi quy (Regression)</b>.</li>
-                         <li><b>Học không giám sát (Unsupervised Learning):</b> Học từ dữ liệu không có nhãn để tìm ra cấu trúc ẩn. Ví dụ: <b>Phân cụm (Clustering)</b>.</li>
-                         <li><b>Học tăng cường (Reinforcement Learning):</b> Tác tử học thông qua tương tác và nhận phần thưởng/phạt.</li>
-                     </ul>
-                 </div>
-                 <div class="ai-assistant-card card mt-8 max-w-4xl mx-auto"></div>
-            </section>
-            
-            <!-- Section: Lecture 11 -->
-            <section id="lect11" class="content-section space-y-6">
-                <h2 class="text-3xl font-bold text-center text-teal-800">Bài 11: Mạng Nơ-ron (Neural Network)</h2>
-                 <p class="max-w-3xl mx-auto text-center text-stone-700 mb-8">Mạng nơ-ron là một mô hình học máy mạnh mẽ, lấy cảm hứng từ cấu trúc của bộ não người.</p>
-                <div class="card">
-                    <h3 class="text-xl font-bold mb-2">Mô hình Nơ-ron và Kiến trúc mạng</h3>
-                    <p class="mb-2 text-stone-600">Một nơ-ron nhân tạo nhận các đầu vào `p`, nhân chúng với các <b>trọng số (W)</b>, cộng thêm một <b>độ lệch (b)</b>, và đưa kết quả qua một <b>hàm truyền (f)</b> để tạo ra đầu ra `a`.</p>
-                    <div class="bg-stone-100 p-4 rounded font-mono text-sm text-center">a = f(W * p + b)</div>
-                    <p class="mt-2 text-stone-600">Các mạng có thể có một tầng (single-layer) hoặc nhiều tầng (multi-layer) với các lớp ẩn (hidden layers).</p>
-                </div>
-                 <div class="card">
-                    <h3 class="text-xl font-bold mb-2">Mạng Perceptron</h3>
-                     <p class="mb-4 text-stone-600">Là mạng nơ-ron một tầng đơn giản nhất, sử dụng hàm truyền `hardlim`. Nó tạo ra một <b>đường biên quyết định (decision boundary)</b> tuyến tính để phân loại dữ liệu.</p>
-                     <h4 class="font-bold">Luật học Perceptron:</h4>
-                     <p class="text-stone-600 text-sm mb-2">Cập nhật trọng số và độ lệch để giảm lỗi (e = target - actual):</p>
-                     <div class="font-mono text-sm bg-stone-100 p-2 rounded">W_new = W_old + e * p<br>b_new = b_old + e</div>
-                     <h4 class="font-bold mt-4">Hạn chế:</h4>
-                     <p class="text-stone-600 text-sm">Perceptron chỉ giải được các bài toán phân loại tuyến tính và thất bại với các bài toán như XOR. Điều này thúc đẩy sự phát triển của mạng đa tầng.</p>
-                 </div>
-                 <div class="ai-assistant-card card mt-8 max-w-4xl mx-auto"></div>
             </section>
         </main>
     </div>
@@ -328,22 +104,15 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const nav = document.getElementById('main-nav');
-            const contentContainer = document.getElementById('content-container');
-            const sections = contentContainer.querySelectorAll('.content-section');
+            const sections = document.querySelectorAll('.content-section');
             let currentTopic = 'Giới thiệu AI';
 
             function getAIassistantHTML(topic) {
-                return `
-                    <h3 class="text-2xl font-bold mb-4 text-teal-700">Trợ lý AI</h3>
-                    <div class="space-y-4">
-                        <div><button class="generate-questions-btn bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 w-full md:w-auto">✨ Tạo câu hỏi ôn tập về ${topic}</button></div>
-                        <div class="flex flex-col md:flex-row gap-2"><input type="text" class="concept-input flex-grow p-2 border rounded-md" placeholder="Nhập khái niệm cần giải thích..."><button class="explain-concept-btn bg-sky-600 text-white px-4 py-2 rounded-lg hover:bg-sky-700 w-full md:w-auto">🔍 Giải thích</button></div>
-                    </div>
-                    <div class="ai-response-area mt-4 p-4 bg-stone-100 rounded-lg min-h-[100px] prose-styles"><p class="text-stone-500">Kết quả từ AI sẽ xuất hiện ở đây...</p></div>`;
+                return `<h3 class="text-2xl font-bold mb-4 text-teal-700">Trợ lý Ôn tập AI</h3><div class="space-y-4"><div><button class="generate-questions-btn bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 w-full md:w-auto">✨ Tạo câu hỏi ôn tập về ${topic}</button></div><div class="flex flex-col md:flex-row gap-2"><input type="text" class="concept-input flex-grow p-2 border rounded-md" placeholder="Nhập khái niệm cần giải thích..."><button class="explain-concept-btn bg-sky-600 text-white px-4 py-2 rounded-lg hover:bg-sky-700 w-full md:w-auto">🔍 Giải thích</button></div></div><div class="ai-response-area mt-4 p-4 bg-stone-100 rounded-lg min-h-[100px] prose-styles"><p class="text-stone-500">Kết quả từ AI sẽ xuất hiện ở đây...</p></div>`;
             }
 
             document.querySelectorAll('.ai-assistant-card').forEach(card => {
-                const topic = card.closest('.content-section').querySelector('h2').textContent.replace('Bài \\d+: ', '');
+                const topic = card.closest('.content-section').querySelector('h2').textContent.replace(/Bài \d+: /g, '');
                 card.innerHTML = getAIassistantHTML(topic);
             });
 
@@ -357,29 +126,34 @@
                 }
             });
 
-            async function callGemini(prompt, responseElement) {
-                responseElement.innerHTML = '<div class="loader"></div>';
+            async function callGemini(prompt, responseElement, isJson = false) {
+                if (responseElement) responseElement.innerHTML = '<div class="loader"></div>';
                 const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
-                const apiKey = "AIzaSyDXt5kAIJ8nXz7ass40L87VH2obLrXjB7Y";
+                if (isJson) payload.generationConfig = { responseMimeType: "application/json" };
+                const apiKey = "";
                 try {
                     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                     if (!response.ok) throw new Error(`API error: ${response.statusText}`);
                     const result = await response.json();
                     if (result.candidates && result.candidates[0].content.parts.length > 0) {
-                        responseElement.innerHTML = marked.parse(result.candidates[0].content.parts[0].text);
-                    } else { throw new Error('No content received from API.'); }
+                        const rawText = result.candidates[0].content.parts[0].text;
+                        if (isJson) return JSON.parse(rawText);
+                        if (responseElement) responseElement.innerHTML = marked.parse(rawText);
+                    } else throw new Error('No content received from API.');
                 } catch (error) {
                     console.error("Gemini API call failed:", error);
-                    responseElement.innerHTML = `<p class="text-rose-600">Đã xảy ra lỗi khi kết nối với AI. Vui lòng thử lại sau.</p>`;
+                    const errorMsg = `<p class="text-rose-600">Đã xảy ra lỗi khi tạo nội dung. Vui lòng thử lại sau.</p>`;
+                    if(responseElement) responseElement.innerHTML = errorMsg;
+                    return null;
                 }
             }
-
-            contentContainer.addEventListener('click', function(e) {
+            
+            document.querySelector('#content-container').addEventListener('click', function(e) {
                 const card = e.target.closest('.ai-assistant-card');
                 if (!card) return;
                 const responseArea = card.querySelector('.ai-response-area');
                 if (e.target.classList.contains('generate-questions-btn')) {
-                    const prompt = `Với vai trò là một trợ giảng môn Trí tuệ Nhân tạo, hãy tạo ra 10 câu hỏi trắc nghiệm (kèm đáp án và giải thích chi tiết dễ hiểu) để giúp sinh viên ôn tập về chủ đề "${currentTopic}". Vui lòng trả lời bằng tiếng Việt.`;
+                    const prompt = `Với vai trò là một trợ giảng môn Trí tuệ Nhân tạo, hãy tạo ra 3 câu hỏi trắc nghiệm (kèm đáp án và giải thích ngắn gọn) để giúp sinh viên ôn tập về chủ đề "${currentTopic}". Vui lòng trả lời bằng tiếng Việt.`;
                     callGemini(prompt, responseArea);
                 }
                 if (e.target.classList.contains('explain-concept-btn')) {
@@ -388,89 +162,106 @@
                     if (concept) {
                         const prompt = `Hãy giải thích khái niệm "${concept}" trong lĩnh vực Trí tuệ Nhân tạo một cách đơn giản, dễ hiểu cho sinh viên đang ôn thi, có thể kèm theo ví dụ. Vui lòng trả lời bằng tiếng Việt.`;
                         callGemini(prompt, responseArea);
-                    } else { responseArea.innerHTML = '<p class="text-amber-600">Vui lòng nhập một khái niệm để được giải thích.</p>'; }
+                    } else responseArea.innerHTML = '<p class="text-amber-600">Vui lòng nhập một khái niệm để được giải thích.</p>';
                 }
             });
+            
+            // General AI Chat Logic
+            const chatForm = document.getElementById('chat-form');
+            const chatInput = document.getElementById('chat-input');
+            const chatLog = document.getElementById('chat-log');
 
-            // Search Algorithm Data (Uninformed)
-            const algoDataUninformed = {
-                'BFS': { name: 'BFS', complete: 'Có', optimal: 'Có*', time: 'O(b^d)', space: 'O(b^d)' },
-                'UCS': { name: 'UCS', complete: 'Có', optimal: 'Có', time: 'O(b^(1+C*/ε))', space: 'O(b^(1+C*/ε))' },
-                'DFS': { name: 'DFS', complete: 'Không**', optimal: 'Không', time: 'O(b^m)', space: 'O(bm)' },
-                'IDS': { name: 'IDS', complete: 'Có', optimal: 'Có*', time: 'O(b^d)', space: 'O(bd)' }
-            };
-            const algoTableBodyUninformed = document.querySelector('#algo-table-uninformed tbody');
-            function populateUninformedTable() {
-                algoTableBodyUninformed.innerHTML = '';
-                Object.values(algoDataUninformed).forEach(algo => {
-                    const row = document.createElement('tr');
-                    row.className = 'border-b hover:bg-stone-50';
-                    row.innerHTML = `<td class="p-2 font-medium">${algo.name}</td><td class="p-2">${algo.complete}</td><td class="p-2">${algo.optimal}</td><td class="p-2 font-mono">${algo.time}</td><td class="p-2 font-mono">${algo.space}</td>`;
-                    algoTableBodyUninformed.appendChild(row);
-                });
-                algoTableBodyUninformed.innerHTML += `<tr class="bg-stone-50"><td colspan="5" class="p-2 text-xs text-stone-500">*Khi chi phí bước bằng nhau. **Trong không gian vô hạn hoặc có chu trình.</td></tr>`;
-            }
-            if (algoTableBodyUninformed) populateUninformedTable();
+            chatForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const userMessage = chatInput.value.trim();
+                if (!userMessage) return;
 
+                chatInput.value = '';
+                
+                // Display user message
+                const userBubble = document.createElement('div');
+                userBubble.className = 'chat-bubble-user p-3 rounded-lg max-w-lg prose-styles';
+                userBubble.innerHTML = marked.parse(userMessage);
+                chatLog.appendChild(userBubble);
+                chatLog.scrollTop = chatLog.scrollHeight;
+                
+                // Create a placeholder for AI response
+                const aiBubble = document.createElement('div');
+                aiBubble.className = 'chat-bubble-ai p-3 rounded-lg max-w-lg prose-styles';
+                chatLog.appendChild(aiBubble);
+                
+                const prompt = `Với vai trò là một trợ giảng môn Trí tuệ Nhân tạo, hãy trả lời câu hỏi sau của sinh viên một cách rõ ràng và súc tích, dựa trên kiến thức chung về AI. Câu hỏi: "${userMessage}". Vui lòng trả lời bằng tiếng Việt.`;
+                await callGemini(prompt, aiBubble);
+                chatLog.scrollTop = chatLog.scrollHeight;
+            });
 
-            // CSP Logic
-            const startCspBtn = document.getElementById('start-csp');
-            const resetCspBtn = document.getElementById('reset-csp');
-            const cspLog = document.getElementById('csp-log');
-            const cspMapDivs = Array.from(document.querySelectorAll('#csp-map > div[data-id]'));
-            const cspData = {
-                variables: ['WA', 'NT', 'SA', 'Q', 'NSW', 'V'],
-                colors: ['bg-red-500', 'bg-green-500', 'bg-blue-500'],
-                neighbors: { 'WA': ['NT', 'SA'], 'NT': ['WA', 'SA', 'Q'], 'SA': ['WA', 'NT', 'Q', 'NSW', 'V'], 'Q': ['NT', 'SA', 'NSW'], 'NSW': ['Q', 'SA', 'V'], 'V': ['SA', 'NSW'] }
-            };
-            let cspInterval;
+            // Quiz Logic
+            const startQuizBtn = document.getElementById('start-quiz-btn');
+            const quizStarterDiv = document.getElementById('quiz-starter');
+            const quizContainer = document.getElementById('quiz-container');
+            const quizResultsContainer = document.getElementById('quiz-results');
+            let quizData = [];
 
-            function resetCsp() {
-                clearInterval(cspInterval);
-                cspMapDivs.forEach(div => {
-                    div.className = div.className.replace(/bg-(red|green|blue)-500/g, 'bg-white');
-                    div.innerText = div.dataset.id;
-                });
-                cspLog.innerHTML = '<p class="font-mono text-sm">Nhấn "Bắt đầu" để xem các bước giải...</p>';
-            }
-
-            function solveCsp() {
-                resetCsp();
-                let assignments = {}; let log = []; let step = 0;
-                function isConsistent(variable, colorIndex, currentAssignments) { return cspData.neighbors[variable].every(neighbor => currentAssignments[neighbor] !== colorIndex); }
-                function backtrack(currentAssignments, varIndex) {
-                    if (varIndex >= cspData.variables.length) return true;
-                    const variable = cspData.variables[varIndex];
-                    for (let i = 0; i < cspData.colors.length; i++) {
-                        log.push({ var: variable, color: i, status: 'TRY' });
-                        if (isConsistent(variable, i, currentAssignments)) {
-                            currentAssignments[variable] = i; log.push({ var: variable, color: i, status: 'ASSIGN' });
-                            if (backtrack(currentAssignments, varIndex + 1)) return true;
-                            log.push({ var: variable, color: i, status: 'BACKTRACK' }); delete currentAssignments[variable];
-                        } else { log.push({ var: variable, color: i, status: 'CONFLICT' }); }
-                    } return false;
+            async function startQuiz() {
+                quizStarterDiv.classList.add('hidden');
+                quizContainer.classList.remove('hidden');
+                quizResultsContainer.classList.add('hidden');
+                const prompt = `Tạo một bài thi trắc nghiệm gồm 40 câu hỏi bao quát các chủ đề chính trong môn Trí tuệ Nhân tạo. Vui lòng đảm bảo có sự kết hợp giữa câu hỏi lý thuyết và các bài toán tính toán. Các bài toán tính toán nên tập trung vào các chủ đề như: áp dụng thuật toán tìm kiếm (BFS, A*), bài toán thỏa mãn ràng buộc (CSP), chứng minh logic mệnh đề, và các bước tính toán trong mạng Perceptron. Vui lòng trả về kết quả dưới dạng một mảng JSON duy nhất. Mỗi đối tượng trong mảng phải có các key: "question" (chuỗi), "options" (một mảng 4 chuỗi), và "answer" (một chuỗi khớp chính xác với một trong các lựa chọn). Câu hỏi và lựa chọn phải bằng tiếng Việt.`;
+                quizData = await callGemini(prompt, quizContainer, true);
+                if (quizData && quizData.length > 0) {
+                    renderQuiz(quizData);
+                } else {
+                     quizContainer.innerHTML = `<p class="text-rose-600 text-center">Không thể tạo đề thi vào lúc này. Vui lòng thử lại.</p><button id="retry-quiz-btn" class="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 mt-4 mx-auto block">Thử lại</button>`;
+                     quizContainer.querySelector('#retry-quiz-btn').addEventListener('click', startQuiz);
                 }
-                backtrack(assignments, 0);
-                cspInterval = setInterval(() => {
-                    if (step >= log.length) { clearInterval(cspInterval); cspLog.innerHTML += '<p class="font-mono text-sm font-bold text-teal-600 mt-2">Đã tìm thấy nghiệm!</p>'; return; }
-                    const action = log[step];
-                    const div = document.querySelector(`#csp-map > div[data-id="${action.var}"]`);
-                    if (action.status === 'ASSIGN') {
-                        cspLog.innerHTML += `<p class="font-mono text-sm">Gán <span class="font-bold text-teal-700">${action.var}</span> = ${cspData.colors[action.color].split('-')[1]}</p>`;
-                        div.className = div.className.replace(/bg-white/g, cspData.colors[action.color]);
-                    } else if (action.status === 'BACKTRACK') {
-                        cspLog.innerHTML += `<p class="font-mono text-sm text-rose-600">Quay lui từ ${action.var}</p>`;
-                        div.className = div.className.replace(/bg-(red|green|blue)-500/g, 'bg-white');
-                    } else if (action.status === 'CONFLICT') {
-                        // Don't log conflict to reduce noise
-                    } else if (action.status === 'TRY'){
-                         // Don't log try to reduce noise
-                    }
-                    cspLog.scrollTop = cspLog.scrollHeight; step++;
-                }, 400);
             }
-            if(startCspBtn) startCspBtn.addEventListener('click', solveCsp);
-            if(resetCspBtn) resetCspBtn.addEventListener('click', resetCsp);
+            
+            function renderQuiz(questions) {
+                quizContainer.innerHTML = '';
+                const form = document.createElement('form');
+                form.id = 'quiz-form';
+                questions.forEach((q, index) => {
+                    const questionCard = document.createElement('div');
+                    questionCard.className = 'card mb-4';
+                    let optionsHTML = q.options.map(option => `
+                        <div class="quiz-option border rounded hover:bg-stone-100"><label><input type="radio" name="question${index}" value="${option.replace(/"/g, '&quot;')}" class="mr-2"><span>${option}</span></label></div>`
+                    ).join('');
+                    questionCard.innerHTML = `<p class="font-bold mb-3">${index + 1}. ${q.question}</p><div class="space-y-2">${optionsHTML}</div>`;
+                    form.appendChild(questionCard);
+                });
+                const submitBtn = document.createElement('button');
+                submitBtn.type = 'submit';
+                submitBtn.innerText = 'Nộp bài và Xem kết quả';
+                submitBtn.className = 'bg-teal-600 text-white px-6 py-3 rounded-lg hover:bg-teal-700 text-lg font-bold w-full mt-6';
+                form.appendChild(submitBtn);
+                form.addEventListener('submit', handleSubmitQuiz);
+                quizContainer.appendChild(form);
+            }
+
+            function handleSubmitQuiz(e) {
+                e.preventDefault();
+                let score = 0;
+                const form = document.getElementById('quiz-form');
+                quizData.forEach((q, index) => {
+                    const optionsDivs = form.querySelectorAll(`input[name="question${index}"]`);
+                    optionsDivs.forEach(radio => {
+                        const parentDiv = radio.closest('.quiz-option');
+                        radio.disabled = true;
+                        if (radio.value === q.answer) parentDiv.classList.add('correct');
+                    });
+                    const selectedOption = form.querySelector(`input[name="question${index}"]:checked`);
+                    if (selectedOption) {
+                        if (selectedOption.value === q.answer) score++;
+                        else selectedOption.closest('.quiz-option').classList.add('incorrect');
+                    }
+                });
+                quizResultsContainer.classList.remove('hidden');
+                quizResultsContainer.innerHTML = `<h3 class="text-2xl font-bold mb-4 text-center">Kết quả Thi thử</h3><p class="text-center text-4xl font-bold">${score} / ${quizData.length}</p><p class="text-center text-lg mt-2">${(score / quizData.length * 100).toFixed(1)}%</p><button id="retake-quiz-btn" class="bg-rose-600 text-white px-4 py-2 rounded-lg hover:bg-rose-700 mt-6 mx-auto block">Làm lại bài khác</button>`;
+                quizResultsContainer.querySelector('#retake-quiz-btn').addEventListener('click', startQuiz);
+                quizResultsContainer.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            startQuizBtn.addEventListener('click', startQuiz);
         });
     </script>
 </body>
